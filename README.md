@@ -28,3 +28,10 @@ corrs = Scaling.correlations(scaling_calc, data)
 mpqs = Scaling.mpq_scaling(scaling_calc, combos_mpq_indices)
 
 ```
+
+### Caveats
+
+Since the MPQ calculation, equation (4) of [Evrard et. al 2014](https://academic.oup.com/mnras/article/441/4/3562/1217975), involves the covariance and slopes, `Scaling.scaling_params(...)` and `Scaling.covariances(...)` need to be run before running `Scaling.mpq_scaling(...)`.
+
+
+If you find any errors/bugs in the code, please reach out to ealjamal@umich.edu.
