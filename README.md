@@ -14,6 +14,7 @@ data_path = "<path/to/data/>"
 
 data = pd.read_csv(data_path)
 properties = ["M_hot_gas_500c", "T_sl_500c", "L_X_500c", "Y_X_500c", "Y_SZ_500c"]
+combos_mpq_indices = ["01", 01234"]
 sim_name = "TNG"
 
 scaling_calc = ScalingCalculator(properties = properties, scale_var = "M_500c", bins = 20,
@@ -23,6 +24,6 @@ scaling_calc = ScalingCalculator(properties = properties, scale_var = "M_500c", 
 kllr_params = Scaling.scaling_params(scaling_calc, data)
 covs = Scaling.covariances(scaling_calc, data)
 corrs = Scaling.correlations(scaling_calc, data)
-mpqs = Scaling.mpq_scaling(scaling_calc, data)
+mpqs = Scaling.mpq_scaling(scaling_calc, combos_mpq_indices)
 
 ```
