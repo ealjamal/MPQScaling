@@ -9,6 +9,7 @@ This repository hosts both data from TNG300-1, TNG-Cluster and FLAMINGO_L1-m8 si
 ```
 import Scaling
 import ScalingCalculator
+import pandas as pd
 
 data_path = "<path/to/data/>"
 
