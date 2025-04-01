@@ -20,17 +20,24 @@ scaling_calc = MPQScaling(properties = properties, scale_var = "M_500c", bins = 
                           xrange = None, nBootstrap = 100, percentile = [16., 84.],
                           kernel_type = "gaussian", kernel_width = 0.2, verbose = True)
 
-
+# Calculate binned scaling parameters
 scaling_calc.calculate_scaling_parameters(data)
+# Store scaling parameters
 scaling_params = scaling_calc.get_scaling_parameters()
+
+# Calculate binned covariance matrix
 scaling_calc.calculate_covariance_matrix(data)
+# Store covariance
 covariance = scaling_calc.get_covariances()
+
 # Find the MPQ of all individual properties.
 mpqs_individual = scaling_calc.get_mpq(num_props_in_combination = 1)
 # Find the combined MPQ of the properties in 'properties' with index 0 and 1.
 mpqs_gas_temp = scaling_calc.get_mpq(combination = [0, 1])
 
+# Calculate binned correlation matrix
 scaling_calc.calculate_correlation_matrix(data)
+# Store correlation
 correlations = scaling_calc.get_correlations()
 
 ```
