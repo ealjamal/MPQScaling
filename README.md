@@ -26,7 +26,7 @@ scaling_params = scaling_calc.get_scaling_parameters()
 scaling_calc.calculate_covariance_matrix(data)
 covariance = scaling_calc.get_covariances()
 # Find the MPQ of all individual properties.
-mpqs_individual = scaling_calc.get_mpq(num_props_in_combinations = 1)
+mpqs_individual = scaling_calc.get_mpq(num_props_in_combination = 1)
 # Find the combined MPQ of the properties in 'properties' with index 0 and 1.
 mpqs_gas_temp = scaling_calc.get_mpq(combination = [0, 1])
 
