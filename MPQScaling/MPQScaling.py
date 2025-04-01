@@ -127,6 +127,10 @@ class MPQScaling:
 
         '''
 
+        # Check if scale_var is in data columns.
+        if self.scale_var not in set(data.columns):
+            raise KeyError(f"The scale variable, {self.scale_var}, must be in the columns of the data.")
+
         # Raise KeyError if the data frame does not include a column that is in MPQScaling.properties.
         if not set(self.properties).issubset(set(data.columns)):
             raise KeyError("Input data frame must include all columns supplied to MPQScaling 'properties' argument.")
@@ -175,6 +179,10 @@ class MPQScaling:
             Data frame containing all properties of interest.
             
         '''
+
+        # Check if scale_var is in data columns.
+        if self.scale_var not in set(data.columns):
+            raise KeyError(f"The scale variable, {self.scale_var}, must be in the columns of the data.")
 
         # Raise KeyError if the data frame does not include a column that is in MPQScaling.properties.
         if not set(self.properties).issubset(set(data.columns)):
@@ -235,6 +243,10 @@ class MPQScaling:
             Data frame containing all properties of interest.
             
         '''
+
+        # Check if scale_var is in data columns.
+        if self.scale_var not in set(data.columns):
+            raise KeyError(f"The scale variable, {self.scale_var}, must be in the columns of the data.")
 
         # Raise KeyError if the data frame does not include a column that
         # is in MPQScaling.properties.
