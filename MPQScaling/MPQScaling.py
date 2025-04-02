@@ -65,7 +65,6 @@ class MPQScaling:
             The 'units' that the scatter is in, use np.log(10) if natural log
             units or percent scatter should be used.
 
-        
         seed: (int)
             The random seed that will be used in the realization of MC sampling
             of the covariance to calculate the mpq statistical error.
