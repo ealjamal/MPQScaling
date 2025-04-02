@@ -543,7 +543,7 @@ class MPQScaling:
 
         # Raise error if there is a repeated index.
         if len(set(combo_inds)) != len(combo_inds):
-            raise ValueError(f"There must not be any repeated indices in 'cobo_inds'")
+            raise ValueError(f"There must not be any repeated indices in 'combo_inds'")
 
         # Raise an error if the maximum index integer andr passed is not between self.p - 1.
         if (max(combo_inds) >= self.p or min(combo_inds) < 0):
