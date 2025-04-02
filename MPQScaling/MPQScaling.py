@@ -6,9 +6,6 @@ import kllr as kl
 import itertools as it
 
 
-# Set the units of scatter to be natural log.
-kl.set_params(scatter_factor = np.log(10)) 
-
 class MPQScaling:
     '''
     This class sets the KLLR parameters by initalization and has method and 
@@ -19,7 +16,7 @@ class MPQScaling:
     def __init__(self, properties, scale_var, bins = 10, xrange = None,
                  nBootstrap = 100, percentile = [16., 84.],
                  kernel_type = "gaussian", kernel_width = 0.2,
-                 seed = None, verbose = True):
+                 scatter_factor = 1.0, seed = None, verbose = True):
         
         '''
         Initialize the MPQScaling class as a context for KLLR where we
@@ -63,6 +60,11 @@ class MPQScaling:
 
         kernel_width: (float)
             The width of the kernel, default is 0.2.
+
+        scatter_factor: (float)
+            The 'units' that the scatter is in, use np.log(10) if natural log
+            units or percent scatter should be used.
+
         
         seed: (int)
             The random seed that will be used in the realization of MC sampling
@@ -83,6 +85,7 @@ class MPQScaling:
         self.percentile = percentile # percentile range for bootstrap uncertainty
         self.kernel_type = kernel_type # kernel type, 'gaussian' or 'top hat'
         self.kernel_width = kernel_width # kernel width
+        self.scatter_factor = scatter_factor # scatter 'units'
         self.seed = seed # random generator seed for monte carlo
         self.verbose = verbose # verbosity control
 
@@ -126,6 +129,9 @@ class MPQScaling:
             Data Frame containing all properties of interest.
 
         '''
+
+        # Set scatter factor in KLLR.
+        kl.set_params(scatter_factor = self.scatter_factor)
 
         # Check if scale_var is in data columns.
         if self.scale_var not in set(data.columns):
@@ -179,6 +185,9 @@ class MPQScaling:
             Data frame containing all properties of interest.
             
         '''
+
+        # Set scatter factor in KLLR.
+        kl.set_params(scatter_factor = self.scatter_factor)
 
         # Check if scale_var is in data columns.
         if self.scale_var not in set(data.columns):
