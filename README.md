@@ -4,6 +4,10 @@ Produce localized scaling relation parameters, covariances, correlations and Mas
 
 This repository hosts both data from TNG300-1, TNG-Cluster and FLAMINGO_L1-m8 simulations and scripts to produce the normalization, slope, scatter, pairwise correlation, pairwise covariance, and Mass Proxy Quality for any data set.
 
+## Dependencies
+
+`numpy`, `pandas`, `scipy`, `matplotlib`, `kllr`.
+
 ## QUICKSTART
 
 ```
