@@ -86,7 +86,8 @@
 
 ! For each simulation and snapshot, there are 4 .csv files:
 	1) scaling parameters: 
-		These are .csv files named as such 							        gas_scaling_parameters_{simulation}_snap{snapshot}. These contain
+		These are .csv files named as such
+		gas_scaling_parameters_{simulation}_snap{snapshot}. These contain
 		the binned mass as well as the normalization, slope, and scatter
                 of each property. Note, the scatter is given as the scatter in the
 		natural log of properties.
