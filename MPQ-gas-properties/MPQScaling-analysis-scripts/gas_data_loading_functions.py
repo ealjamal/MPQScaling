@@ -32,7 +32,7 @@ def find_max_nth_largest_scale(df, n, scale_var):
     
     '''
     
-    max_nth_largest_scale = np.sort(df[scale_var])[-(n + 1)]
+    max_nth_largest_scale = np.sort(df[scale_var])[-n]
 
 
     return max_nth_largest_scale
