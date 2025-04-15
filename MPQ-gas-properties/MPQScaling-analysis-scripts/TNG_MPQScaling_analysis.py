@@ -13,7 +13,7 @@ def main():
     ##### Helpful variables for data loading
 
     data_path = "/Volumes/external-hard/cosmo-research/gas-properties-paper/data/" # path to halo catalogues
-    sim_name = "TNG300_1" # simulation name that will be used to save .csv files
+    sim_name = "TNG300_1+TNG_Cluster" # simulation name that will be used to save .csv files
     snap = int(sys.argv[1]) # snapshot for simulations
     halo_file_tng300 = data_path + f"TNG300_1_halo_catalog_snap{snap}.csv" # path for TNG300-1 halos
     halo_file_tng_clus = data_path + f"TNG_Cluster_halo_catalog_snap{snap}.csv" # path for TNG-Cluster halos
@@ -30,14 +30,13 @@ def main():
     # Load TNG-Cluster halo catalogue of provided snapshot
     data_tng_clus = load_and_add_columns(sim = "TNG_Cluster", snap = snap, halo_file = halo_file_tng_clus, result_columns = columns)
     # Concatenate TNG300-1 and TNG-Cluster halo catalogues
-    data_c = pd.concat([data_tng300, data_tng_clus])
-    data = data_tng300
+    data = pd.concat([data_tng300, data_tng_clus])
 
     ##### MPQScaling analysis
 
     # Define the scale variable as M500c and extract mass of the 21st most massive halo
     top_halo_num, scale_var = 20, "M_500c"
-    mass_top_nth = find_max_nth_largest_scale(data_c, top_halo_num, scale_var)
+    mass_top_nth = find_max_nth_largest_scale(data, top_halo_num, scale_var)
 
     ##### KLLR settings
 
