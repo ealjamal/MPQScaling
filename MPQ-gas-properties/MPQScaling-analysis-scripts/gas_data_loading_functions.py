@@ -27,6 +27,11 @@ def load_and_add_columns(sim, snap, halo_file, result_columns):
 
 
 def find_max_nth_largest_scale(df, n, scale_var):
+    '''
+    Find the nth largest value in the scale variable given the halos data frame
+    
+    '''
+    
     max_nth_largest_scale = np.sort(df[scale_var])[-(n + 1)]
 
 
