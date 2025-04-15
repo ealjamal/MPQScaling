@@ -29,7 +29,7 @@ def main():
     ##### KLLR settings
 
     # Define the scale variable as M500c and extract mass of the 21st most massive halo
-    top_halo_num, scale_var = 20, "M_500c"
+    top_halo_num, scale_var = 21, "M_500c"
     mass_top_nth = find_max_nth_largest_scale(data, top_halo_num, scale_var)
 
     ##### KLLR settings
