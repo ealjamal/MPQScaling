@@ -16,7 +16,8 @@ class MPQScaling:
     def __init__(self, properties, scale_var, bins = 10, xrange = None,
                  nBootstrap = 100, percentile = [16., 84.],
                  kernel_type = "gaussian", kernel_width = 0.2,
-                 scatter_factor = 1.0, seed = None, verbose = True):
+                 scatter_factor = 1.0, seed = None, verbose = True,
+                 max_iter_cov_search = 1000):
         
         '''
         Initialize the MPQScaling class as a context for KLLR where we
@@ -70,7 +71,12 @@ class MPQScaling:
             of the covariance to calculate the mpq statistical error.
 
         verbose: (boolean)
-            Controls the verbosity of the analysis output. Default is True.       
+            Controls the verbosity of the analysis output. Default is True.
+
+        max_iter_cov_search: (int)
+            Sets the maximum number of iteration when sampling the covariance matrix,
+            since we need to to check for symmetric positive definiteness and we 
+            throw away matrices that aren't positive definite.
     
        '''
         
@@ -87,6 +93,8 @@ class MPQScaling:
         self.scatter_factor = scatter_factor # scatter 'units'
         self.seed = seed # random generator seed for monte carlo
         self.verbose = verbose # verbosity control
+        self.max_iter_cov_search = max_iter_cov_search # Max number of iterations to search samplings for 
+                                                       # symmetric positive definite covariance matrices
 
         # The following attributes will be initialized to zero and filled by the KLLR analysis.
 
@@ -343,7 +351,7 @@ class MPQScaling:
     
     
     @staticmethod
-    def _sample_covariance(C, C_err):
+    def _sample_covariance(C, C_err, max_iter_cov_search):
         '''
         Convenience function that samples from the covariance error that
         result from KLLR to find perturbations of the covariance matrix
@@ -359,6 +367,10 @@ class MPQScaling:
         C_err: (numpy array)
             Matrix of errors in each entry of the binned covariance matrices.
 
+        max_iter_cov_search: (int)
+            Max number of iterations to search samplings for symmetric positive
+            definite covariance matrices.
+
         --------
         Output
         --------
@@ -367,7 +379,6 @@ class MPQScaling:
         ensured to be symmetric and positive definite.
             
         '''
-
 
         # Helper functions for providing a symmetric matrix and checking if
         #  it is positive definite.
@@ -393,7 +404,7 @@ class MPQScaling:
         # If it is not positive definite, we sample until we find one that is positive definite. Another method 
         # to ensure that a matrix is positive definite is to use the Cholesky decomposition where we first 
         # replace the non-positive eigenvalues with smaller positive eignevalues and use the decomposition
-        #  But, after testing, this was very unstable on values of mpq.
+        # But, after testing, this was very unstable on values of mpq.
 
         # Initialize the perturbed covariance matrix, that is a sample from the errors of covariance.
         pert_C = np.zeros_like(C)
@@ -401,7 +412,14 @@ class MPQScaling:
             # For each bin, we sample from a random normal distribution with mean 0 (we will add to nominal covariance
             # later) and with errors for the entries given by entries in C_err. After symmetrizing the matrix, we skip
             # over all perturbed covariance matrices that are not positive definite.
+
+            # Number of iteration where the covariance matrix is not symmetric positive definite
+            iter_cov_sample = 0
             while True:
+                # If after max_iter_cov_search number of iterations, we don't a positive
+                # definite matrix, we raise a RuntimeError
+                if iter_cov_sample >= max_iter_cov_search:
+                    raise RuntimeError(f"Maximum number of iterations for covariance perturbation exceeded for bin {k}")
                 # sample from normal distribution for perturbations
                 C_perturbations = np.random.normal(np.zeros_like(C[:, :, k]), C_err[:, :, k])
                 symm_perturbations  = make_symmetric(C_perturbations) # make perturbations symmetric
@@ -410,6 +428,8 @@ class MPQScaling:
                 if is_positive_definite(potential_pert_C): # skip over all matrices that are not positive definite
                     pert_C[:, :, k] = C[:, :, k] + symm_perturbations
                     break
+
+                iter_cov_sample += 1
         
 
         return pert_C
@@ -462,7 +482,7 @@ class MPQScaling:
         while boot_i < self.nBootstrap: 
             slopes_perturbations = np.random.normal(np.zeros_like(slopes), slopes_err) # create slope perturbations
             pert_slopes = slopes + slopes_perturbations # add to nominal values of slope to find the perturbed slopes
-            pert_C = self._sample_covariance(C, C_err) # sample covariance to find perturbed covariance
+            pert_C = self._sample_covariance(C, C_err, self.max_iter_cov_search) # sample covariance to find perturbed covariance
 
             # Check if the matrix is invertible by numpy, pert_C is guaranteed to be positive definite and therfore,
             # invertible but this will serve as a check.
