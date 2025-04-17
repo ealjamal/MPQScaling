@@ -11,7 +11,7 @@ import sys
 def main():
     ##### Helpful variables for data loading
 
-    data_path = "/Volumes/external-hard/cosmo-research/gas-properties-paper/data/" # path to halo catalogues
+    data_path = "<path/to/FLAMINGO/halo/catalogue/>" # path to halo catalogues
     sim_name = "FLAM_L1000N3600" # simulation name that will be used to save .csv files
     snap = int(sys.argv[1]) # snapshot for simulations
     halo_file = data_path + f"FLAM_L1000N3600_halo_catalog_snap00{snap}.csv" # path for FLAMINGO-L1_m8 halos

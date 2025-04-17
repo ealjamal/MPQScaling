@@ -12,7 +12,7 @@ import sys
 def main():
     ##### Helpful variables for data loading
 
-    data_path = "/Volumes/external-hard/cosmo-research/gas-properties-paper/data/" # path to halo catalogues
+    data_path = "<path/to/TNG/halo/catalogues/>" # path to halo catalogues
     sim_name = "TNG300_1+TNG_Cluster" # simulation name that will be used to save .csv files
     snap = int(sys.argv[1]) # snapshot for simulations
     halo_file_tng300 = data_path + f"TNG300_1_halo_catalog_snap{snap}.csv" # path for TNG300-1 halos
