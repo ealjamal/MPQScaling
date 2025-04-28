@@ -26,8 +26,6 @@ def main():
     # Load FLAMINGO-L1_m8 halo catalogue of provided snapshot
     data = load_and_add_columns(sim = "FLAM_L1000N3600", snap = snap, halo_file = halo_file, result_columns = columns)
 
-    ##### KLLR settings
-
     # Define the scale variable as M500c and extract mass of the 21st most massive halo
     top_halo_num, scale_var = 21, "M_500c"
     mass_top_nth = find_max_nth_largest_scale(data, top_halo_num, scale_var)
