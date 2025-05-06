@@ -18,7 +18,6 @@ data_path = "<path/to/data/>"
 
 data = pd.read_csv(data_path)
 properties = ["M_hot_gas_500c", "T_sl_500c", "L_X_500c", "Y_X_500c", "Y_SZ_500c"]
-sim_name = "TNG"
 
 scaling_calc = MPQScaling(properties = properties, scale_var = "M_500c", bins = 20,
                           xrange = None, nBootstrap = 100, percentile = [16., 84.],
