@@ -3,7 +3,7 @@
 
 import pandas as pd
 import numpy as np
-from MPQScaling.MPQScaling import MPQScaling
+from MPQScaling import MPQScaling
 from gas_data_loading_functions import load_and_add_columns, find_max_nth_largest_scale
 from time import time
 import sys
