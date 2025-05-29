@@ -8,7 +8,7 @@ import itertools as it
 
 class MPQScaling:
     '''
-    This class sets the KLLR parameters by initalization and has method and 
+    This class sets the KLLR settings and has methods and 
     retreive scaling parameters, covariance, correlations and MPQs.
 
     '''
@@ -21,7 +21,7 @@ class MPQScaling:
         
         '''
         Initialize the MPQScaling class as a context for KLLR where we
-        take inputs for the KLLR settings and initialize the attributes filled
+        take inputs for the KLLR settings and initialize attributes filled
         with zeros and will be populated by the KLLR analysis.
         
         --------
@@ -98,7 +98,7 @@ class MPQScaling:
 
         # The following attributes will be initialized to zero and filled by the KLLR analysis.
 
-        # Binned KLLR parameters of normalization, slope, and scatter (natural log)
+        # Binned KLLR parameters of normalization, slope, and scatter
         self.scale = np.zeros(shape = (1, self.bins)) # the binned scale variable.
         self.norms = np.zeros(shape = (self.p, self.bins)) # the KLLR normalizations
         self.norms_minus = np.zeros(shape = (self.p, self.bins)) # KLLR normalization lower percentile
@@ -125,7 +125,7 @@ class MPQScaling:
         
     def calculate_scaling_parameters(self, data):
         '''
-        Calculate the biined scaling parameters of the properties provided to
+        Calculate the binned scaling parameters of the properties provided to
         MPQScaling.properties and store the results in the attributes.
         
         --------
@@ -230,12 +230,12 @@ class MPQScaling:
             self.C[i, j, :] = self.C[j, i, :] = cov["cov_" + prop1 + "_" + prop2]
             self.C[j, j, :] = cov["cov_" + prop2 + "_" + prop2]
 
-            # Covariance values for the minus percentiles.
+            # Covariance values for the lower (minus) percentiles.
             self.C_minus[i, i, :] = cov["cov_" + prop1 + "_" + prop1 + "-"]
             self.C_minus[i, j, :] = self.C_minus[j, i, :] = cov["cov_" + prop1 + "_" + prop2 + "-"]
             self.C_minus[j, j, :] = cov["cov_" + prop2 + "_" + prop2 + "-"]
 
-            # Covariance values for the plus percentile.
+            # Covariance values for the upper (plus) percentile.
             self.C_plus[i, i, :] = cov["cov_" + prop1 + "_" + prop1 + "+"]
             self.C_plus[i, j, :] = self.C_plus[j, i, :] = cov["cov_" + prop1 + "_" + prop2 + "+"]
             self.C_plus[j, j, :] = cov["cov_" + prop2 + "_" + prop2 + "+"]
@@ -295,12 +295,12 @@ class MPQScaling:
             self.corr[i, j, :] = self.corr[j, i, :] = corr["corr_" + prop1 + "_" + prop2]
             self.corr[j, j, :] = 1
 
-            # Correlation values for the minus percentiles.
+            # Correlation values for the lower (minus) percentiles.
             self.corr_minus[i, i, :] = 1
             self.corr_minus[i, j, :] = self.corr_minus[j, i, :] = corr["corr_" + prop1 + "_" + prop2 + "-"]
             self.corr_minus[j, j, :] = 1
 
-            # Correlation values for the plus percentile.
+            # Correlation values for the upper (plus) percentile.
             self.corr_plus[i, i, :] = 1
             self.corr_plus[i, j, :] = self.corr_plus[j, i, :] = corr["corr_" + prop1 + "_" + prop2 + "+"]
             self.corr_plus[j, j, :] = 1
@@ -334,9 +334,9 @@ class MPQScaling:
         Output
         --------
 
-        The mass proxy quality as defined by the above equation. If x variable
-        is other than mass then it is no longer interpreted as the mass proxy
-        quality.
+        The mass (or could be the quality of any other provided scale_var) proxy
+        quality as defined by the above equation. If x variable is other than
+        mass then it is no longer interpreted as the mass proxy quality.
            
         '''
 
@@ -431,7 +431,6 @@ class MPQScaling:
 
                 iter_cov_sample += 1
         
-
         return pert_C
     
 
@@ -464,7 +463,7 @@ class MPQScaling:
         --------
 
         mpq_samples: (numpy array)
-            Array of shape (nBootstrap,) that holds the mpq calculated from
+            Array of shape (nBootstrap,) that holds the mpqs calculated from
             the perturbed covariance and perturbed slopes. This will be
             used to determine the median MPQ and the statistical error
             around the median.
@@ -500,8 +499,8 @@ class MPQScaling:
         if mpq_samples.size == 0:
             raise ValueError("All matrix inversions failed. Check the perturbations.")
 
-
         return mpq_samples
+
 
     @staticmethod
     def _indices_to_props(indices, properties):
@@ -608,16 +607,15 @@ class MPQScaling:
         mpq_result[props_str + "_mpq-"] = mpq_minus # lower percentile of mpq
         mpq_result[props_str + "_mpq+"] = mpq_plus # upper percentile of mpq
         
-
         return mpq_result
     
     
     def _mpq_all_combos(self, num_props_in_combo):
         '''
-        Given a certain number of properties to combine, find the MPQs of any possible
-        combination of the MPQScaling.properties with that length. If we have
-        a total of 10 properties and we pass num_props_in_combo = 5, we find the MPQs
-        of any combination of 5 properties.
+        Given a certain number of properties to combine, find the MPQs of any
+        possible combination of the MPQScaling.properties with that length.
+        If we have a total of 10 properties and we pass num_props_in_combo = 5,
+        we find the MPQs of any combination of 5 properties.
 
         --------
         Params
@@ -650,24 +648,23 @@ class MPQScaling:
             mpq_res = self._mpq_combo(combo) # Calculate MPQ for this combo
             mpq_results.update(mpq_res) # Add the resulting dictionary to results dictionary
 
-        
         return mpq_results
 
 
     def get_scaling_parameters(self):
         '''
-        Retrieve KLLR parameters of scale, normalization, slope, scatter (natural
-        log units) with errors for each property passed to the MPQScaling.
+        Retrieve KLLR parameters of scale, normalization, slope, scatter
+        with errors for each property passed to the MPQScaling.
 
         --------
         Output
         -------- 
 
         kllr_params_dict: (dict)
-            Dictionary containing the bin number, scale as well as normalization, slope, and
-            scatter for each property. For example for the property "M_gas", the 
-            normalization, slope, scatter with their lower and upper percentiles
-            can be accessed using kllr_params_dict["M_gas_norm"],
+            Dictionary containing the bin number, scale as well as normalization,
+            slope, and scatter for each property. For example for the property
+            "M_gas", the  normalization, slope, scatter with their lower and
+            upper percentiles can be accessed using kllr_params_dict["M_gas_norm"],
             kllr_params_dict["M_gas_norm-"], kllr_params_dict["M_gas_norm+"],
             kllr_params_dict["M_gas_slope"], kllr_params_dict["M_gas_slope-"],
             kllr_params_dict["M_gas_slope+"], kllr_params_dict["M_gas_scatter"],
@@ -702,17 +699,16 @@ class MPQScaling:
         # Convert data frame to dictionary and return.
         scaling_params_dict = scaling_params_df.to_dict()
 
-
         return scaling_params_dict
     
     
     @staticmethod
     def _flatten_lower_triangle_of_binned_matrices(binned_matrices):
         '''
-        Convenience method that extracts the covariance/correlation between each pair of
-        properties and flattens them to rows where each entry is the correlation
-        of a pair of properties at a specific bin. It does this for each pair of 
-        properties of interest passed into MPQScaling.
+        Convenience method that extracts the covariance/correlation between each
+        pair of properties and flattens them to rows where each entry is the
+        correlation of a pair of properties at a specific bin. It does this for
+        each pair of properties of interest passed into MPQScaling.
 
         --------
         Params
@@ -792,7 +788,6 @@ class MPQScaling:
         # Convert data frame to dictionary and return.
         cov_dict = cov_df.to_dict()
 
-        
         return cov_dict
 
     
@@ -838,7 +833,6 @@ class MPQScaling:
         # Convert data frame to dictionary and return.
         corr_dict = corr_df.to_dict()        
 
-        
         return corr_dict
     
 
