@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 
-def load_and_add_columns(sim, snap, halo_file, result_columns):
+def load_and_add_properties(sim, snap, halo_file, result_columns):
     '''
     Load multiple data frames within simulations and add two gas properties for X-ray pressure (Y_X_500c) and tSZ pressure (Y_SZ_500c).
 
