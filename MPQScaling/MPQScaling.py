@@ -8,8 +8,8 @@ import itertools as it
 
 class MPQScaling:
     '''
-    This class sets the KLLR settings and has methods and 
-    retreive scaling parameters, covariance, correlations and MPQs.
+    This class sets the KLLR settings and has methods to
+    retrieve scaling parameters, covariance, correlations and MPQs.
 
     '''
     
