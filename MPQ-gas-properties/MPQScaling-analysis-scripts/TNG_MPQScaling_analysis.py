@@ -100,15 +100,16 @@ def main():
     mpq_combo = mpq_scaling.get_mpq(combination = combos_mpq_indices)
     # Create data frame containing the MPQs of individual properties.
     mpq_ind_df = pd.DataFrame(mpq_individual)
-    # Calculate MPQs for pairs, triplets, and quadruplets of properties.
+    # Calculate MPQs for pairs, triplets, and quadruplets of properties and join to
+    # data frame with individual MPQs.
     for i in range(2, 5):
         mpq_combo_i_props = mpq_scaling.get_mpq(num_props_in_combination = i)
         mpq_combo_i_props_df = pd.DataFrame(mpq_combo_i_props).drop("M_500c", axis = 1)
         mpq_ind_df = mpq_ind_df.merge(mpq_combo_i_props_df, on = "bin")
-    # Create data frame containing the MPQ of the combined properties.
+    # Create data frame containing the MPQ of the specific combined properties.
     mpq_combo_df = pd.DataFrame(mpq_combo)
     mpq_combo_df.drop("M_500c", axis = 1, inplace = True)
-    # Merge the the individual MPQ data frame with the combined MPQ data frame and save.
+    # Merge the the MPQ data frame with the specific combination MPQ data frame and save.
     mpq_df = mpq_ind_df.merge(mpq_combo_df, on = "bin")
     mpq_df.to_csv(f"../Data/gas_MPQ_{sim_name}_snap{snap}.csv", index = False)
 
