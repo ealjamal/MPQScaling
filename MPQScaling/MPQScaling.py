@@ -153,7 +153,6 @@ class MPQScaling:
             self.xrange = (np.min(data[f"{self.scale_var}"]),
                            np.max(data[f"{self.scale_var}"]))
 
-
         for k, prop in enumerate(self.properties):
             if self.verbose:
                 print(f"\n\033[33mLoading KLLR parameters data for property {k}: {prop}...\033[0m")
@@ -211,6 +210,12 @@ class MPQScaling:
 
         if self.verbose:
             print(f"\n\033[36mCalculating covariances of {self.p} properties...\033[0m")
+
+        # If there a single property given, covariance will not be calculated, since it will only calculate
+        # the scatter which is calculating in calculate_scaling_parameters, so we raise and error.
+        if self.p == 1:
+            raise ValueError("Covariance cannot be be calculated with only 1 property. The MPQ can be calculated in " \
+                             "this case without calculating the covariance.")
 
         pairs = list(it.combinations(range(self.p), 2)) # Define possible pairs of indices in covariance matrix.
         for i, j in pairs:
@@ -276,6 +281,10 @@ class MPQScaling:
 
         if self.verbose:
             print(f"\n\033[36mCalculating correlations of {self.p} properties...\033[0m")
+
+        # If there a single property given, correlation will not be calculated, so we raise and error.
+        if self.p == 1:
+            raise ValueError("Correlation cannot be be calculated with only 1 property.")
 
         pairs = list(it.combinations(range(self.p), 2)) # Define possible pairs of indices in correlation matrix.
         for i, j in pairs:
@@ -434,7 +443,7 @@ class MPQScaling:
         return pert_C
     
 
-    def _mpq_samples(self, slopes, C, slopes_err, C_err):
+    def _mpq_samples(self, slopes, scatters, C, slopes_err, scatters_err, C_err):
         '''
         Sample covariance and slopes from the error given from KLLR and use
         it to calculate the MPQ for each sample with statistical error.
@@ -447,11 +456,19 @@ class MPQScaling:
             Array of KLLR slopes of shape (self.p, self.b) that result
             from the KLLR analysis.
 
+        scatters (numpy array):
+            Array of KLLR scatters of shape (self.p, self.b) that result
+            from the KLLR analysis.
+
         C: (numpy array)
             Binned covariance matrices from KLLR of shape (self.p, self.p, self.b).
 
         slopes (numpy array):
             Array of KLLR slopes errors of shape (self.p, self.b) that result
+            from the KLLR analysis.
+        
+        scatters (numpy array):
+            Array of KLLR scatters errors of shape (self.p, self.b) that result
             from the KLLR analysis.
 
         C_err: (numpy array)
@@ -481,22 +498,32 @@ class MPQScaling:
         while boot_i < self.nBootstrap: 
             slopes_perturbations = np.random.normal(np.zeros_like(slopes), slopes_err) # create slope perturbations
             pert_slopes = slopes + slopes_perturbations # add to nominal values of slope to find the perturbed slopes
-            pert_C = self._sample_covariance(C, C_err, self.max_iter_cov_search) # sample covariance to find perturbed covariance
+            # If there is a single property given, we calculate the mpq without the covariance by dividing
+            # the scatter and the slope.
+            if self.p == 1:
+                # Create scatter perturbations
+                scatters_perturbations = np.random.normal(np.zeros_like(scatters), scatters_err)
+                # add to nominal values of scatter to find the perturbed scatters
+                pert_scatters = scatters + scatters_perturbations
+                sample_mpq = pert_scatters/pert_slopes # Calculate mpq without covariance
+                mpq_samples.append(sample_mpq.flatten()) # flatten array to be turn into data frame
+            else:
+                pert_C = self._sample_covariance(C, C_err, self.max_iter_cov_search) # sample covariance to find perturbed covariance
 
-            # Check if the matrix is invertible by numpy, pert_C is guaranteed to be positive definite and therfore,
-            # invertible but this will serve as a check.
-            try:
-                inv_C_pert = np.linalg.inv(pert_C.T).T
-            except np.linalg.LinAlgError:
-                continue
+                # Check if the matrix is invertible by numpy, pert_C is guaranteed to be positive definite and therfore,
+                # invertible but this will serve as a check.
+                try:
+                    inv_C_pert = np.linalg.inv(pert_C.T).T
+                except np.linalg.LinAlgError:
+                    continue
 
-            sample_mpq = self._mpq(pert_slopes, inv_C_pert) # calculate mpq for this sample
-            mpq_samples.append(sample_mpq) # add mpq sample to mpq samples list
+                sample_mpq = self._mpq(pert_slopes, inv_C_pert) # calculate mpq for this sample
+                mpq_samples.append(sample_mpq) # add mpq sample to mpq samples list
             boot_i += 1
         
         # Check if the MC yields valid samples.
         mpq_samples = np.array(mpq_samples)
-        if mpq_samples.size == 0:
+        if mpq_samples.size == 0 and self.p != 1:
             raise ValueError("All matrix inversions failed. Check the perturbations.")
 
         return mpq_samples
@@ -589,13 +616,17 @@ class MPQScaling:
         avg_C_err = (np.abs(C_combo - self.C_minus[combo_inds, :, :][:, combo_inds, :]) + 
                      np.abs(C_combo - self.C_plus[combo_inds, :, :][:, combo_inds, :]))/2.0
 
-        # pick out a subvector of the slopes relevant for the properties in this combination for each bin
+        # pick out a subvector of the slopes/scatters relevant for the properties in this combination for each bin
         slopes_combo = self.slopes[combo_inds, :]
         avg_slopes_err = (np.abs(slopes_combo - self.slopes_minus[combo_inds, :]) + 
                           np.abs(slopes_combo - self.slopes_plus[combo_inds, :]))/2.0
+        scatters_combo = self.scatters[combo_inds, :]
+        avg_scatters_err = (np.abs(scatters_combo - self.scatters_minus[combo_inds, :]) + 
+                          np.abs(scatters_combo - self.scatters_plus[combo_inds, :]))/2.0
         
         # Calculate the mpq including the percentiles, and get the samples for mpq, slope and covariance
-        mpq_samples = self._mpq_samples(slopes_combo, C_combo, avg_slopes_err, avg_C_err)
+        mpq_samples = self._mpq_samples(slopes_combo, scatters_combo, C_combo,
+                                        avg_slopes_err, avg_scatters_err, avg_C_err)
 
         # Calculate the median, lower percentile, and upper percentile of the mpq using mpq samples.
         mpq_median = np.percentile(mpq_samples, 50, axis = 0) # calculate median mpq from samples
