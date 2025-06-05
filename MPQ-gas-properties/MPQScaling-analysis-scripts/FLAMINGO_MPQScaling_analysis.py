@@ -97,7 +97,7 @@ def main():
     # Calculate the MPQs for the individual properties in 'props'.
     mpq_individual = mpq_scaling.get_mpq(num_props_in_combination = 1)
     # Calculate the MPQs for the combined properties M_hot_gas_500c, T_sl_wo_recent_AGN_500c,
-    # L_X_ROSAT_obs_wo_recent_AGN_500c, Y_X_500c, and Y_SZ_500c.
+    # L_X_ROSAT_obs_wo_recent_AGN_500c, Y_X_500c, Y_SZ_500c
     mpq_combo = mpq_scaling.get_mpq(combination = combos_mpq_indices)
     # Create data frame containing the MPQs of individual properties.
     mpq_ind_df = pd.DataFrame(mpq_individual)
