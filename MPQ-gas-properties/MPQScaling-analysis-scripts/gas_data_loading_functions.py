@@ -79,7 +79,6 @@ def find_max_nth_largest_scale(df, n, scale_var):
     max_nth_largest_scale (float):
         The nth largest value of the scale_var.
     
-    
     '''
     
     max_nth_largest_scale = np.sort(df[scale_var])[-n]
