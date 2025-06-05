@@ -6,12 +6,38 @@ import pandas as pd
 
 def load_and_add_properties(sim, snap, halo_file, result_columns = None):
     '''
-    Load multiple data frames within simulations and add two gas properties for X-ray pressure (Y_X_500c) and tSZ pressure (Y_SZ_500c).
+    Load data within simulations and add two gas properties for X-ray pressure
+    (Y_X_500c) and thermal (tSZ) pressure (Y_SZ_500c).
+
+    --------
+    Params
+    --------
+
+    sim (string):
+        Simulation name to be displayed in messages during loading.
+
+    snap (int):
+        Snapshot of the simulation to be displayed in messages during loading.
+
+    halo_file (string):
+        File name of the halo catalogue for the simulation.
+
+    result_columns (list of strings):
+        List of halo catalogue columns (as well as added columns) that will 
+        be retained in the result data frame.
+
+    --------
+    Output
+    --------
+
+    halos (pd.DataFrame):
+        Data Frame containing halo properties of interest.
 
     '''
 
-    # Initialize empty array to hold all data frames that will be loaded.
+    # Load the halo catalogue.
     halos = pd.read_csv(halo_file) # load halos data frame
+    # If no result_columns were provided, use all the halo catalogue's columns.
     if result_columns is None:
         result_columns = list(halos.columns)
 
@@ -30,7 +56,29 @@ def load_and_add_properties(sim, snap, halo_file, result_columns = None):
 
 def find_max_nth_largest_scale(df, n, scale_var):
     '''
-    Find the nth largest value in the scale variable given the halos data frame
+    Find the nth largest value in the scale variable given the halos data frame.
+
+    --------
+    Params
+    --------
+
+    df (pd.DataFrame):
+        Halo catalogue data frame.
+    
+    n (integer):
+        The function will return the scale_var with the nth largest value.
+
+    scale_var (string):
+        Column in the halo catalogue data frame that we want to find the
+        nth largest value for.
+
+    --------
+    Output
+    --------
+
+    max_nth_largest_scale (float):
+        The nth largest value of the scale_var.
+    
     
     '''
     
