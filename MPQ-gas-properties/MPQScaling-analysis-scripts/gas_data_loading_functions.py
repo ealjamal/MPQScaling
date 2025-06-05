@@ -13,7 +13,7 @@ def load_and_add_properties(sim, snap, halo_file, result_columns = None):
     # Initialize empty array to hold all data frames that will be loaded.
     halos = pd.read_csv(halo_file) # load halos data frame
     if result_columns is None:
-        result_columns = halos.columns
+        result_columns = list(halos.columns)
 
     num_halos = len(halos) # number of halos in this data frame
     halos["Y_X_500c"] = halos["M_hot_gas_500c"] + halos["T_sl_500c"] if "FLAM" not in halo_file else halos["M_hot_gas_500c"] + halos["T_sl_wo_recent_AGN_500c"] # add X-ray pressure, Y_X_500c = M_gas_500c * T_sl_500c
@@ -25,7 +25,6 @@ def load_and_add_properties(sim, snap, halo_file, result_columns = None):
     # Print the number of halos that were dropped after -inf filter.
     print(f"\nNumber of halos that were dropped after '-inf' filter from simulation {sim} snap {snap} : {num_halos - num_halos_after_filter}")
     
-
     return halos
 
 
@@ -36,6 +35,5 @@ def find_max_nth_largest_scale(df, n, scale_var):
     '''
     
     max_nth_largest_scale = np.sort(df[scale_var])[-n]
-
 
     return max_nth_largest_scale
