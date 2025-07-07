@@ -20,15 +20,17 @@ We have scaling parameters, covariances, correlations and MPQs for seven gas pro
 
 2. Spectroscopic-like temperature of gas particles with $k_{\rm B}T > 0.1$ keV in $R_{500c}$ ("T_sl_500c" in TNG, "T_sl_wo_recent_AGN_500c" in FLAMINGO as we get rid of recently heated AGN cells),
 
-3. Observer name X-ray luminosity ROSAT band $[0.5-2.0]$ keV in $R_{500c}$ ("L_X_ROSAT_obs_500c" in TNG, "L_X_ROSAT_obs_wo_recent_AGN_500c" in FLAMINGO as we get rid of recently heated AGN cells),
+3. Observer frame X-ray luminosity ROSAT band $[0.5-2.0]$ keV in $R_{500c}$ ("L_X_ROSAT_obs_500c" in TNG, "L_X_ROSAT_obs_wo_recent_AGN_500c" in FLAMINGO as we get rid of recently heated AGN cells),
 
-4. X-ray pressure in $R_{500c}$ ("Y_X_500c") defined as the product of the hot gas mass and the spectroscopic-like temperature,
+4. X-ray thermal energy in $R_{500c}$ ("Y_X_500c") defined as the product of the hot gas mass and the spectroscopic-like temperature,
 
-5. Thermal pressure in $R_{500c}$ ("Y_SZ_500c") defined as the product of the hot gas mass and the mass-weighted average temperature,
+5. tSZ Thermal pressure in $R_{500c}$ ("Y_SZ_500c") defined as the product of the hot gas mass and the mass-weighted average temperature,
 
 6. Mass-weighted average temperature of hot gas particles ($T \geq 10^6$ K) in $R_{500c}$ ("T_mw_hot_gas_500c" in TNG, "T_mw_hot_gas_wo_recent_AGN_500c" in FLAMINGO),
 
 7. Core-excised X-ray luminosity in ROSAT band $[0.5-2.0]$ keV in $R_{500c}$ ("L_X_ROSAT_obs_ce_500c" in TNG, "L_X_ROSAT_obs_wo_recent_AGN_ce" in FLAMINGO).
+
+Note, for FLAMINGO, properties without the exclusion of cells that are recently-heated by AGN feedback are given by the suffix `wo_recent_AGN`.
         
 ### Analysis settings
 
