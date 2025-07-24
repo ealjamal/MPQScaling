@@ -309,7 +309,7 @@ def main():
 
     '''
 
-    data_path = "/nfs/turbo/lsa-evrard/MPQ/halo-subhalo-catalogs/"
+    data_path = "<path/to/halo/and/subhalo/catalogs/"
     min_sub_M_star = float(sys.argv[1])
     num_bootstrap = int(sys.argv[2])
 
