@@ -52,11 +52,11 @@ Kernel Localized Linear Regression (KLLR) settings used in the analysis:
 
 ### Analysis Files
 
-For each simulation and snapshot, there are 4 .csv files:
-1. Scaling parameters: These are .csv files named as such gas_scaling_parameters_{simulation}_snap{snapshot}.csv. These contain the binned mass as well as the normalization, slope, and scatter of each property. Note, the scatter is given as the scatter in the natural log of properties.
+For each simulation and snapshot, there are 4 `.pkl` files:
+1. Scaling parameters: These are `.pkl` files named as such gas_scaling_parameters_{simulation}_snap{snapshot}`.pkl`. These contain the binned mass as well as the normalization, slope, and scatter of each property. Note, the scatter is given as the scatter in the natural log of properties.
 
-2. Property covariance: These are .csv files name as such gas_covariances_{simulation}_snap{snapshot}.csv. These contain, the pairwise property covariances.
+2. Property covariance: These are `.pkl` files name as such gas_covariances_{simulation}_snap{snapshot}`.pkl`. These contain, the pairwise property covariances.
 
-3. Property covariance: These are .csv files name as such gas_correlations_{simulation}_snap{snapshot}.csv. These contain, the pairwise property correlations.
+3. Property covariance: These are `.pkl` files name as such gas_correlations_{simulation}_snap{snapshot}`.pkl`. These contain, the pairwise property correlations.
 
-4. Mass proxy Quality (MPQ): These are .csv files name as such gas_MPQ_{simulation}_snap{snapshot}.csv. These contain, the individual property MPQs as well as the combined MPQs of the first five properties listed above Note, the mass scatter is given as the scatter in the natural log of halo mass (M500c).
+4. Mass proxy Quality (MPQ): These are `.pkl` files name as such gas_MPQ_{simulation}_snap{snapshot}`.pkl`. These contain, the individual property MPQs as well as the combined MPQs of the first five properties listed above Note, the mass scatter is given as the scatter in the natural log of halo mass (M500c).
