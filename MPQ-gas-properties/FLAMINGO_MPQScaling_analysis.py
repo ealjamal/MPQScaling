@@ -3,16 +3,10 @@
 
 import pandas as pd
 import numpy as np
-from gas_properties_helper_functions import *
+from .gas_properties_helper_functions import *
 from time import time
-import os
 import sys
-
-# Set path for MPQScaling.py.
-script_dir = os.path.dirname(os.path.abspath(__file__))
-mpqscaling_dir = os.path.abspath(os.path.join(script_dir, '../MPQScaling'))
-sys.path.insert(0, mpqscaling_dir)
-from MPQScaling import MPQScaling
+from MPQScaling import MPQScaling # For this import to work, please make sure to run this script from parent directory.
 
 
 def main():
@@ -76,17 +70,17 @@ def main():
     # Retrieve binned mass and scaling parameters and define a data frame containing them and save.
     scaling_params = mpq_scaling.get_scaling_parameters()
     scaling_params_df = pd.DataFrame(scaling_params)
-    scaling_params_df.to_csv(f"./Data/gas_scaling_parameters_{sim_name}_snap00{snap}.csv", index = False)
+    scaling_params_df.to_csv(f"MPQ_gas_properties/Data/gas_scaling_parameters_{sim_name}_snap00{snap}.csv", index = False)
 
     # Retrieve binned mass and pairwise property covariance and define a data frame containing them and save.
     covs = mpq_scaling.get_covariances()
     covs_df = pd.DataFrame(covs)
-    covs_df.to_csv(f"./Data/gas_covariances_{sim_name}_snap00{snap}.csv", index = False)
+    covs_df.to_csv(f"MPQ_gas_properties/Data/gas_covariances_{sim_name}_snap00{snap}.csv", index = False)
 
     # Retrieve binned mass and pairwise property correlations and define a data frame containing them and save.
     corrs = mpq_scaling.get_correlations()
     corrs_df = pd.DataFrame(corrs)
-    corrs_df.to_csv(f"./Data/gas_correlations_{sim_name}_snap00{snap}.csv", index = False)
+    corrs_df.to_csv(f"MPQ_gas_properties/Data/gas_correlations_{sim_name}_snap00{snap}.csv", index = False)
     
     # Calculate the MPQs for the individual properties in 'props'.
     mpq_individual = mpq_scaling.get_mpq(num_props_in_combination = 1)
@@ -106,7 +100,7 @@ def main():
     mpq_combo_df.drop("M_500c", axis = 1, inplace = True)
     # Merge the the MPQ data frame with the specific combination MPQ data frame and save.
     mpq_df = mpq_ind_df.merge(mpq_combo_df, on = "bin")
-    mpq_df.to_csv(f"./Data/gas_MPQ_{sim_name}_snap00{snap}.csv", index = False)
+    mpq_df.to_csv(f"MPQ_gas_properties/Data/gas_MPQ_{sim_name}_snap00{snap}.csv", index = False)
 
 
 if __name__ == "__main__":
