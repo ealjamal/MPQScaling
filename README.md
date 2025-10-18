@@ -49,8 +49,8 @@ correlations = scaling_calc.get_correlations()
 
 Since the MPQ calculation, equation (4) of [Evrard et. al 2014](https://academic.oup.com/mnras/article/441/4/3562/1217975), involves the covariance and slopes, `MPQScaling.calculate_scaling_parameters(...)` and `MPQScaling.calculate_covariance_matrix(...)` need to be run before running `MPQScaling.get_mpq(...)`.
 
-Scripts that were used two MPQ properties papers are in `MPQ-gas-properties` and `MPQ-stellar-properties` (in prep.) with the analysis data in `.csv` files.
+Scripts that were used two MPQ properties papers are in `MPQ_gas_properties` [Aljamal et. al 2025](https://academic.oup.com/mnras/advance-article/doi/10.1093/mnras/staf1665/8269934) and `MPQ_stellar_properties` (in prep.) with the analysis data in `.pkl` files.
 
-Halo catalogs from IllustrisTNG (TNG-300), TNG-Cluster, and FLAMINGO-L1_m8 are in `halo-catalogs` as `.h5` files.
+Halo catalogs from IllustrisTNG (TNG-300), TNG-Cluster, and FLAMINGO-L1_m8 are in `halo_catalogs` as `.h5` files.
 
 If you find any errors/bugs in the code, please reach out to ealjamal@umich.edu.
