@@ -464,7 +464,7 @@ def main():
 
     tng_snaps = [33, 50, 67, 99]
     tng_result_columns = ["halo_ID", "M_200c", "R_200c", "M_500c", "R_500c", 
-                          "M_hot_gas_500c", "M_cold_gas_500c", "T_sl_500c", "T_mw_hot_gas_500c", 
+                          "M_dm_500c", "M_hot_gas_500c", "M_cold_gas_500c", "T_sl_500c", "T_mw_hot_gas_500c", 
                           "L_X_ROSAT_obs_500c", "L_X_ROSAT_obs_ce_500c", "Y_X_500c", "Y_SZ_500c",
                           "M_star_500c", "M_star_BCG_30kpc", "M_star_BCG_100kpc", "M_bh_500c",
                           "M_star_sat_500c", "M_star_ICL_30kpc_500c", "M_star_ICL_100kpc_500c",
@@ -473,7 +473,7 @@ def main():
                           "sat_vel_disp_z_500c", "sat_vel_disp_500c"]
     flam_snaps = [38, 58, 68, 78]
     flam_result_columns = ["halo_cat_ID", "host_ID", "M_200c", "R_200c", "M_500c", "R_500c", 
-                           "M_hot_gas_500c", "M_cold_gas_500c", "T_sl_500c", "T_sl_wo_recent_AGN_500c",
+                           "M_dm_500c", "M_hot_gas_500c", "M_cold_gas_500c", "T_sl_500c", "T_sl_wo_recent_AGN_500c",
                            "T_mw_hot_gas_500c", "T_mw_hot_gas_wo_recent_AGN_500c",
                            "L_X_ROSAT_obs_500c", "L_X_ROSAT_obs_wo_recent_AGN_500c",
                            "L_X_ROSAT_obs_ce_500c", "L_X_ROSAT_obs_wo_recent_AGN_ce_500c",
