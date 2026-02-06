@@ -52,33 +52,6 @@ def gapper_vel_disp_bootstrap(velocities, num_bootstrap = 1000, random_seed = 0)
 
     return sigma_G_median
 
-
-def log_stellar_mass_gap(subhalo_log_stellar_masses, sub_num_star_particles, brighter_ind, fainter_ind, min_num_star_particles=1):
-    '''
-    Calculate the log stellar mass gap between the ith brightest and jth brightest
-    subhalos. Brightest refers to the largest subhalo stellar mass.
-
-    '''
-
-    subhalo_log_stellar_masses = np.array(subhalo_log_stellar_masses)
-    sub_num_star_particles = np.array(sub_num_star_particles)
-
-    num_star_particles_mask = np.where(sub_num_star_particles >= min_num_star_particles)
-    subhalo_log_stellar_masses = subhalo_log_stellar_masses[num_star_particles_mask]
-    
-    if len(subhalo_log_stellar_masses) < fainter_ind:
-        return np.nan
-
-    sorted_sub_log_stellar_masses = np.sort(subhalo_log_stellar_masses)[::-1]
-    brighter_sub_log_stellar_mass = sorted_sub_log_stellar_masses[brighter_ind - 1]
-    fainter_sub_log_stellar_mass = sorted_sub_log_stellar_masses[fainter_ind - 1]
-
-    log_stellar_mass_gap = np.log10(np.power(10, brighter_sub_log_stellar_mass) - 
-                                    np.power(10, fainter_sub_log_stellar_mass))
-    
-    return log_stellar_mass_gap
-
-
 def load_h5_halo_catalog(halo_file):
     '''
     Load halo catalog from .h5 file.
