@@ -154,7 +154,7 @@ def log_stellar_mass_gap(subhalo_log_stellar_masses, sub_num_star_particles, bri
 
 def TNG_load_and_add_properties(halo_file, subhalo_file, min_sub_M_star,
                                 result_columns = None, exclude_subhalo_flag = True, 
-                                exclude_hierarchical_subhalos = True, num_bootstrap = 1000,
+                                exclude_hierarchical_subhalos = False, num_bootstrap = 1000,
                                 random_seed = 0):
     '''
     Load TNG halo properties and add new properties to them.
@@ -467,7 +467,7 @@ def main():
         tng300_halo_catalog = TNG_load_and_add_properties(tng300_halo_file, tng300_subhalo_file,
                                                           min_sub_M_star, result_columns = tng_result_columns,
                                                           exclude_subhalo_flag = True, 
-                                                          exclude_hierarchical_subhalos = True,
+                                                          exclude_hierarchical_subhalos = False,
                                                           num_bootstrap = num_bootstrap)
         save_h5_halo_catalog(tng300_halo_catalog, "TNG300_1", tng_snap, min_sub_M_star, num_bootstrap)
 
@@ -475,7 +475,7 @@ def main():
         tng_cluster_halo_catalog = TNG_load_and_add_properties(tng_cluster_halo_file, tng_cluster_subhalo_file,
                                                                min_sub_M_star, result_columns = tng_result_columns,
                                                                exclude_subhalo_flag = True, 
-                                                               exclude_hierarchical_subhalos = True, 
+                                                               exclude_hierarchical_subhalos = False, 
                                                                num_bootstrap = num_bootstrap)
         save_h5_halo_catalog(tng_cluster_halo_catalog, "TNG_Cluster", tng_snap, min_sub_M_star, num_bootstrap)
         
