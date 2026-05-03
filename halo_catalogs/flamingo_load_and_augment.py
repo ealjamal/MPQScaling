@@ -28,7 +28,7 @@ import pandas as pd
 from utils import (BOX_SIZE_COMOVING, SNAP_TO_Z, gapper_vel_disp_bootstrap,
                    log_stellar_mass_gap, periodic_dist, save_h5)
 
-DATA_BASE = Path("/Volumes/external-hard/cosmo-research/stellar-properties-paper/halo_subhalo_catalogs")
+DATA_BASE = Path("/nfs/turbo/lsa-evrard/MPQ/halo-subhalo-catalogs")
 
 RESULT_COLUMNS = [
     "halo_cat_ID", "host_ID", "M_200c", "R_200c", "M_500c", "R_500c",
