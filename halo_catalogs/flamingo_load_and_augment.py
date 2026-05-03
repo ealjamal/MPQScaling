@@ -148,6 +148,9 @@ def load_and_augment(halo_file, subhalo_file, min_sub_M_star, boxsize_physical,
     
     halos = pd.read_csv(halo_file)
     subs = pd.read_csv(subhalo_file)
+    halos["halo_cat_ID"] = halos["halo_cat_ID"].astype(np.int64)
+    halos["host_ID"] = halos["host_ID"].astype(np.int64)
+    subs["host_ID"] = subs["host_ID"].astype(np.int64)
 
     # Rename physical radii to drop the "_physical" suffix
     halos.rename(columns={"R_500c_physical": "R_500c", "R_200c_physical": "R_200c"}, inplace=True)

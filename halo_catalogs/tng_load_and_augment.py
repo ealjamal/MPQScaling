@@ -81,6 +81,8 @@ def load_and_augment(halo_file, subhalo_file, min_sub_M_star,
     
     halos = pd.read_csv(halo_file)
     subs = pd.read_csv(subhalo_file)
+    halos["halo_ID"] = halos["halo_ID"].astype(np.int64)
+    subs["sub_ID"] = subs["sub_ID"].astype(np.int64)
 
     # Derived quantities from halo CSV alone
     halos["Y_X_500c"] = halos["M_hot_gas_500c"] + halos["T_sl_500c"]
