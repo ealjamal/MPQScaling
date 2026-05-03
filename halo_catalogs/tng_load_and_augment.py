@@ -195,12 +195,6 @@ def load_and_augment(halo_file, subhalo_file, min_sub_M_star,
         halos["sat_vel_disp_z_500c"] = np.log10(halos["sat_vel_disp_z_500c"])
         halos["sat_vel_disp_500c"] = np.log10(halos["sat_vel_disp_500c"])
 
-    halos.rename(columns={
-        "halo_pos_physical_x": "halo_pos_x",
-        "halo_pos_physical_y": "halo_pos_y",
-        "halo_pos_physical_z": "halo_pos_z",
-    }, inplace=True)
-
     if result_columns is None:
         result_columns = list(halos.columns)
 
