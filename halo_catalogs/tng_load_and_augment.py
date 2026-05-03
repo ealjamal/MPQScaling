@@ -78,6 +78,7 @@ def load_and_augment(halo_file, subhalo_file, min_sub_M_star,
         Augmented halo catalog sorted by M_500c descending, restricted to
         `result_columns`, with integer halo_ID.
     """
+    
     halos = pd.read_csv(halo_file)
     subs = pd.read_csv(subhalo_file)
 

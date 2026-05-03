@@ -25,7 +25,8 @@ from time import time
 import numpy as np
 import pandas as pd
 
-from utils import gapper_vel_disp_bootstrap, log_stellar_mass_gap, save_h5
+from utils import (BOX_SIZE_COMOVING, SNAP_TO_Z, gapper_vel_disp_bootstrap,
+                   log_stellar_mass_gap, periodic_dist, save_h5)
 
 DATA_BASE = Path("/Volumes/external-hard/cosmo-research/stellar-properties-paper/halo_subhalo_catalogs")
 
@@ -60,7 +61,30 @@ VARIATION_LABEL: dict[str, str] = {
 
 
 def resolve_paths(simulation: str, snap_str: str, variation: str | None) -> tuple[Path, Path, Path, str]:
-    """Return (halo_csv, subhalo_csv, out_h5, label) for the given simulation/snap/variation."""
+    """
+    Resolve file paths and simulation label for a FLAMINGO run.
+
+    Parameters
+    ----------
+    simulation : str
+        Simulation box name: 'L1000N3600' or 'L1000N1800'.
+    snap_str : str
+        Zero-padded snapshot string (e.g. '0038').
+    variation : str or None
+        L1000N1800 physics variation key (e.g. 'fgas_m4sig'), or None for the
+        fiducial run. Must be a key in VARIATION_LABEL or None.
+
+    Returns
+    -------
+    tuple of (Path, Path, Path, str)
+        halo_csv, subhalo_csv, out_h5, label — where label encodes the
+        simulation and variation (e.g. 'L1000N1800_fgas_m4sig').
+
+    Raises
+    ------
+    SystemExit
+        If `variation` is not None and not a recognised key in VARIATION_LABEL.
+    """
     if simulation == "L1000N1800":
         if variation is not None and variation not in VARIATION_LABEL:
             raise SystemExit(
@@ -80,11 +104,48 @@ def resolve_paths(simulation: str, snap_str: str, variation: str | None) -> tupl
     sub_stem = f"FLAMINGO_{label}_subhalo_catalog_snap{snap_str}"
     subhalo_csv = sim_data_dir / f"{sub_stem}.csv"
     out_h5 = sim_data_dir / f"{stem}.h5"
+
     return halo_csv, subhalo_csv, out_h5, label
 
 
-def load_and_augment(halo_file, subhalo_file, min_sub_M_star,
+def load_and_augment(halo_file, subhalo_file, min_sub_M_star, boxsize_physical,
                      result_columns=None, num_bootstrap=1000, random_seed=0):
+    """
+    Load FLAMINGO halo/subhalo CSVs and augment with derived quantities.
+
+    Computes subhalo distances from the halo center using periodic boundary
+    conditions to determine which subhalos lie within R_500c, then computes
+    stellar mass gaps, satellite counts, and per-axis gapper velocity
+    dispersions (log10-scaled) for satellites within R_500c above the
+    stellar mass threshold.
+
+    Parameters
+    ----------
+    halo_file : str or Path
+        Path to the halo catalog CSV.
+    subhalo_file : str or Path
+        Path to the subhalo catalog CSV.
+    min_sub_M_star : float
+        Minimum log10 stellar mass (log10 Msol) for a subhalo to enter the
+        satellite pool used for gaps and velocity dispersions.
+    boxsize_physical : float
+        Physical side length of the simulation box (Mpc), used for periodic
+        boundary wrapping when computing subhalo–halo distances.
+    result_columns : list of str or None
+        Columns to retain in the returned DataFrame. If None, all columns
+        are kept.
+    num_bootstrap : int
+        Number of bootstrap samples for the gapper velocity dispersion.
+    random_seed : int
+        Seed for the bootstrap random number generator.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Augmented halo catalog sorted by M_500c descending, restricted to
+        `result_columns`, with integer halo_cat_ID and host_ID.
+    """
+    
     halos = pd.read_csv(halo_file)
     subs = pd.read_csv(subhalo_file)
 
@@ -105,7 +166,7 @@ def load_and_augment(halo_file, subhalo_file, min_sub_M_star,
     dx = subs["sub_pos_physical_x"] - subs["halo_pos_physical_x"]
     dy = subs["sub_pos_physical_y"] - subs["halo_pos_physical_y"]
     dz = subs["sub_pos_physical_z"] - subs["halo_pos_physical_z"]
-    subs["in_R_500c"] = np.sqrt(dx**2 + dy**2 + dz**2) <= subs["R_500c"]
+    subs["in_R_500c"] = periodic_dist(dx, dy, dz, boxsize_physical) <= subs["R_500c"]
 
     # Stellar mass gaps: all subhalos (incl. BCG) in R_500c above min stellar mass
     pool = subs[(subs["in_R_500c"]) & (subs["sub_M_star"] >= min_sub_M_star)]
@@ -184,6 +245,7 @@ def load_and_augment(halo_file, subhalo_file, min_sub_M_star,
     halos_final = halos[result_columns].sort_values("M_500c", ascending=False).reset_index(drop=True)
     halos_final["halo_cat_ID"] = halos_final["halo_cat_ID"].astype(np.int64)
     halos_final["host_ID"] = halos_final["host_ID"].astype(np.int64)
+    
     return halos_final
 
 
@@ -212,9 +274,13 @@ def main():
 
     halo_file, subhalo_file, out_path, label = resolve_paths(simulation, snap_str, variation)
 
-    logging.info(f"Processing FLAMINGO {label} snapshot {snap_str}")
+    redshift = SNAP_TO_Z[simulation][snap_int]
+    scale_factor = 1 / (1 + redshift)
+    boxsize_physical = BOX_SIZE_COMOVING[simulation] * scale_factor
+
+    logging.info(f"Processing FLAMINGO {label} snapshot {snap_str} (z={redshift}, a={scale_factor:.4f})")
     catalog = load_and_augment(
-        halo_file, subhalo_file, min_sub_M_star,
+        halo_file, subhalo_file, min_sub_M_star, boxsize_physical,
         result_columns=RESULT_COLUMNS,
         num_bootstrap=num_bootstrap,
     )
