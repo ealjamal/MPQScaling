@@ -3,6 +3,61 @@ import json
 import h5py
 import numpy as np
 
+# Comoving box side lengths in Mpc
+BOX_SIZE_COMOVING = {
+    "TNG300-1":    302.627694124594,
+    "TNG300-2":    302.627694124594,
+    "TNG-Cluster": 1003.8382049010925,
+    "L1000N3600":  1000.00000048,
+    "L1000N1800":  1000.00000048,
+}
+
+# Snapshot number → redshift for each simulation family
+_TNG_SNAP_TO_Z = {
+    2: 12, 3: 11, 4: 10, 6: 9, 8: 8, 11: 7, 13: 6, 17: 5, 21: 4, 25: 3,
+    33: 2, 40: 1.5, 50: 1, 59: 0.7, 67: 0.5, 72: 0.4, 78: 0.3, 84: 0.2,
+    91: 0.1, 99: 0,
+}
+SNAP_TO_Z = {
+    "TNG300-1":    _TNG_SNAP_TO_Z,
+    "TNG300-2":    _TNG_SNAP_TO_Z,
+    "TNG-Cluster": _TNG_SNAP_TO_Z,
+    "L1000N3600":  {10: 5, 14: 4, 18: 3, 38: 2, 48: 1.5, 58: 1, 63: 0.75,
+                    68: 0.5, 70: 0.4, 72: 0.3, 74: 0.2, 76: 0.1, 78: 0},
+    "L1000N1800":  {9: 5, 13: 4, 17: 3, 37: 2, 47: 1.5, 57: 1, 62: 0.75,
+                    67: 0.5, 69: 0.4, 71: 0.3, 73: 0.2, 75: 0.1, 77: 0},
+}
+
+
+def periodic_dist(dx, dy, dz, boxsize):
+    """
+    Euclidean distance with periodic boundary wrapping.
+
+    Applies the minimum-image convention along each axis independently
+    before computing the 3D Euclidean norm. Operates element-wise on
+    array inputs, so each row can have a different displacement.
+
+    Parameters
+    ----------
+    dx, dy, dz : array-like
+        Pre-computed displacement components (same units as boxsize).
+    boxsize : float
+        Side length of the periodic box (same units as displacements).
+
+    Returns
+    -------
+    numpy.ndarray
+        Periodic Euclidean distances.
+    """
+    dx = np.asarray(dx, dtype=float)
+    dy = np.asarray(dy, dtype=float)
+    dz = np.asarray(dz, dtype=float)
+    dx -= boxsize * np.round(dx / boxsize)
+    dy -= boxsize * np.round(dy / boxsize)
+    dz -= boxsize * np.round(dz / boxsize)
+
+    return np.sqrt(dx**2 + dy**2 + dz**2)
+
 
 def gapper_vel_disp(velocities):
     """
