@@ -40,6 +40,44 @@ def load_and_augment(halo_file, subhalo_file, min_sub_M_star,
                      result_columns=None, exclude_subhalo_flag=True,
                      exclude_hierarchical_subhalos=False, num_bootstrap=1000,
                      random_seed=0):
+    """
+    Load TNG halo/subhalo CSVs and augment with derived quantities.
+
+    Merges BCG properties from the subhalo catalog into the halo catalog,
+    optionally filters out halos with SubhaloFlag=0 or hierarchical subhalos
+    (SubhaloParent!=0), then computes stellar mass gaps, satellite counts, and
+    per-axis gapper velocity dispersions (log10-scaled) for satellites within
+    R_500c above the stellar mass threshold.
+
+    Parameters
+    ----------
+    halo_file : str or Path
+        Path to the halo catalog CSV.
+    subhalo_file : str or Path
+        Path to the subhalo catalog CSV.
+    min_sub_M_star : float
+        Minimum log10 stellar mass (log10 Msol) for a subhalo to enter the
+        satellite pool used for gaps and velocity dispersions.
+    result_columns : list of str or None
+        Columns to retain in the returned DataFrame. If None, all columns
+        are kept.
+    exclude_subhalo_flag : bool
+        If True, drop halos whose BCG has SubhaloFlag=0 and subhalos with
+        SubhaloFlag=0 from the satellite pool.
+    exclude_hierarchical_subhalos : bool
+        If True, drop halos whose BCG has SubhaloParent!=0 and subhalos with
+        SubhaloParent!=0 from the satellite pool.
+    num_bootstrap : int
+        Number of bootstrap samples for the gapper velocity dispersion.
+    random_seed : int
+        Seed for the bootstrap random number generator.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Augmented halo catalog sorted by M_500c descending, restricted to
+        `result_columns`, with integer halo_ID.
+    """
     halos = pd.read_csv(halo_file)
     subs = pd.read_csv(subhalo_file)
 
@@ -167,6 +205,7 @@ def load_and_augment(halo_file, subhalo_file, min_sub_M_star,
 
     halos_final = halos[result_columns].sort_values("M_500c", ascending=False).reset_index(drop=True)
     halos_final["halo_ID"] = halos_final["halo_ID"].astype(np.int64)
+    
     return halos_final
 
 
