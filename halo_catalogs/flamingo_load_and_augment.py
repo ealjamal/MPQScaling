@@ -2,18 +2,19 @@
 Load FLAMINGO halo/subhalo CSVs from Great Lakes and augment with derived quantities.
 
 Usage:
-    python flamingo_load_and_augment.py <simulation> <snap> <min_sub_M_star> [num_bootstrap] [variation]
+    python flamingo_load_and_augment.py <simulation> <snap> <min_sub_M_star> [num_bootstrap] [min_num_star_particles] [variation]
 
-    simulation: L1000N3600, L1000N1800
-    snap:       integer snapshot number (zero-padded to 4 digits internally, e.g. 38 -> 0038)
-    variation:  (L1000N1800 only) fgas_m2sig, fgas_m4sig, fgas_m8sig, fgas_p2sig, jets,
-                jets_fgas_m4sig, mstar_m1sig, mstar_m1sig_fgas_m4sig, adiabatic, L1m9.
-                Omit or pass '_' for the fiducial (no-variation) run.
+    simulation:            L1000N3600, L1000N1800
+    snap:                  integer snapshot number (zero-padded to 4 digits internally, e.g. 38 -> 0038)
+    min_num_star_particles: minimum star particles for a subhalo to count as a satellite (default: 1)
+    variation:             (L1000N1800 only) L1m9, fgas_m2sig, fgas_m4sig, fgas_m8sig, fgas_p2sig,
+                           jets, jets_fgas_m4sig, mstar_m1sig, mstar_m1sig_fgas_m4sig, adiabatic.
+                           Omit or pass '_' to use L1m9 (the HYDRO_FIDUCIAL run).
 
 Examples:
     python flamingo_load_and_augment.py L1000N3600 38 9.5 1000
-    python flamingo_load_and_augment.py L1000N1800 77 9.5 1000 fgas_m4sig
-    python flamingo_load_and_augment.py L1000N1800 77 9.5 1000 _
+    python flamingo_load_and_augment.py L1000N1800 77 9.5 1000 1 fgas_m4sig
+    python flamingo_load_and_augment.py L1000N1800 77 9.5 1000 1
 """
 
 import logging
@@ -41,8 +42,11 @@ RESULT_COLUMNS = [
     "M_star_500c", "M_star_BCG_30kpc", "M_star_BCG_100kpc", "M_bh_500c",
     "M_star_sat_500c", "M_star_ICL_30kpc_500c", "M_star_ICL_100kpc_500c",
     "M_star_12", "M_star_14", "SFR_500c", "sSFR_500c",
+    "N_bh_500c", "N_dm_500c", "N_gas_500c", "N_star_500c",
     "N_sat_500c", "sat_vel_disp_x_500c", "sat_vel_disp_y_500c",
     "sat_vel_disp_z_500c", "sat_vel_disp_500c",
+    "min_num_star_particles_sat_500c", "max_num_star_particles_sat_500c",
+    "min_sub_M_star_sat_500c", "max_sub_M_star_sat_500c",
 ]
 
 # Supported L1000N1800 variation names and their label suffixes
@@ -71,14 +75,14 @@ def resolve_paths(simulation: str, snap_str: str, variation: str | None) -> tupl
     snap_str : str
         Zero-padded snapshot string (e.g. '0038').
     variation : str or None
-        L1000N1800 physics variation key (e.g. 'fgas_m4sig'), or None for the
-        fiducial run. Must be a key in VARIATION_LABEL or None.
+        L1000N1800 physics variation key (e.g. 'fgas_m4sig'), or None to use
+        the L1m9 (HYDRO_FIDUCIAL) run. Must be a key in VARIATION_LABEL or None.
 
     Returns
     -------
     tuple of (Path, Path, Path, str)
         halo_csv, subhalo_csv, out_h5, label — where label encodes the
-        simulation and variation (e.g. 'L1000N1800_fgas_m4sig').
+        simulation and variation (e.g. 'L1000N1800_L1m9', 'L1000N1800_fgas_m4sig').
 
     Raises
     ------
@@ -89,27 +93,29 @@ def resolve_paths(simulation: str, snap_str: str, variation: str | None) -> tupl
         if variation is not None and variation not in VARIATION_LABEL:
             raise SystemExit(
                 f"Unknown variation '{variation}'. Supported: {', '.join(sorted(VARIATION_LABEL))}.\n"
-                "Use '_' (or omit) for the fiducial run."
+                "Use '_' (or omit) for the L1m9 (HYDRO_FIDUCIAL) run."
             )
-        var_dir = "no_variation" if variation is None else variation
-        label_suffix = "" if variation is None else VARIATION_LABEL[variation]
-        label = f"{simulation}{label_suffix}"
+        # No-variation runs live in the L1m9 directory and use the L1m9 label.
+        var_dir = "L1m9" if variation is None else variation
         sim_data_dir = DATA_BASE / simulation / var_dir
+        label_suffix = VARIATION_LABEL.get(var_dir, f"_{var_dir}")
+        input_label = f"{simulation}{label_suffix}"
+        label = input_label
     else:
         label = simulation
+        input_label = simulation
         sim_data_dir = DATA_BASE / simulation
 
-    stem = f"FLAMINGO_{label}_halo_catalog_snap{snap_str}"
-    halo_csv = sim_data_dir / f"{stem}.csv"
-    sub_stem = f"FLAMINGO_{label}_subhalo_catalog_snap{snap_str}"
-    subhalo_csv = sim_data_dir / f"{sub_stem}.csv"
-    out_h5 = sim_data_dir / f"{stem}.h5"
+    halo_csv = sim_data_dir / f"FLAMINGO_{input_label}_halo_catalog_snap{snap_str}.csv"
+    subhalo_csv = sim_data_dir / f"FLAMINGO_{input_label}_subhalo_catalog_snap{snap_str}.csv"
+    out_h5 = sim_data_dir / f"FLAMINGO_{label}_halo_catalog_snap{snap_str}.h5"
 
     return halo_csv, subhalo_csv, out_h5, label
 
 
 def load_and_augment(halo_file, subhalo_file, min_sub_M_star, boxsize_physical,
-                     result_columns=None, num_bootstrap=1000, random_seed=0):
+                     result_columns=None, num_bootstrap=1000, random_seed=0,
+                     min_num_star_particles=1):
     """
     Load FLAMINGO halo/subhalo CSVs and augment with derived quantities.
 
@@ -138,6 +144,9 @@ def load_and_augment(halo_file, subhalo_file, min_sub_M_star, boxsize_physical,
         Number of bootstrap samples for the gapper velocity dispersion.
     random_seed : int
         Seed for the bootstrap random number generator.
+    min_num_star_particles : int
+        Minimum number of star particles for a subhalo to be counted as a
+        satellite (applied to both the mass gap pool and velocity pool).
 
     Returns
     -------
@@ -171,17 +180,21 @@ def load_and_augment(halo_file, subhalo_file, min_sub_M_star, boxsize_physical,
     dz = subs["sub_pos_physical_z"] - subs["halo_pos_physical_z"]
     subs["in_R_500c"] = periodic_dist(dx, dy, dz, boxsize_physical) <= subs["R_500c"]
 
-    # Stellar mass gaps: all subhalos (incl. BCG) in R_500c above min stellar mass
-    pool = subs[(subs["in_R_500c"]) & (subs["sub_M_star"] >= min_sub_M_star)]
+    # Stellar mass gaps: all subhalos (incl. BCG) in R_500c above min stellar mass and star particle cut
+    pool = subs[(subs["in_R_500c"]) & 
+                (subs["sub_M_star"] >= min_sub_M_star) & 
+                (subs["sub_num_star_particles"] >= min_num_star_particles)]
     M_star_12 = (
         pool.groupby("host_ID")
-        .apply(lambda x: log_stellar_mass_gap(x["sub_M_star"], x["sub_num_star_particles"], 1, 2),
+        .apply(lambda x: log_stellar_mass_gap(x["sub_M_star"], x["sub_num_star_particles"], 
+                                              1, 2, min_num_star_particles=min_num_star_particles),
                include_groups=False)
         .rename("M_star_12").reset_index()
     )
     M_star_14 = (
         pool.groupby("host_ID")
-        .apply(lambda x: log_stellar_mass_gap(x["sub_M_star"], x["sub_num_star_particles"], 1, 4),
+        .apply(lambda x: log_stellar_mass_gap(x["sub_M_star"], x["sub_num_star_particles"], 
+                                              1, 4, min_num_star_particles=min_num_star_particles),
                include_groups=False)
         .rename("M_star_14").reset_index()
     )
@@ -194,7 +207,10 @@ def load_and_augment(halo_file, subhalo_file, min_sub_M_star, boxsize_physical,
                          "sub_com_vel_z": "BCG_vel_z"})
     )
     sats_pool = (
-        subs[(subs["in_R_500c"]) & (subs["is_central"] == 0) & (subs["sub_M_star"] >= min_sub_M_star)]
+        subs[(subs["in_R_500c"]) & 
+        (subs["is_central"] == 0) & 
+        (subs["sub_M_star"] >= min_sub_M_star) & 
+        (subs["sub_num_star_particles"] >= min_num_star_particles)]
         .copy()
         .merge(bcg_vels, on="host_ID", how="left")
     )
@@ -203,6 +219,17 @@ def load_and_augment(halo_file, subhalo_file, min_sub_M_star, boxsize_physical,
     sats_pool["sub_rel_vel_z"] = sats_pool["sub_com_vel_z"] - sats_pool["BCG_vel_z"]
 
     N_sat = sats_pool.groupby("host_ID").apply("size").rename("N_sat_500c").reset_index()
+
+    sat_stats = (
+        sats_pool.groupby("host_ID")
+        .agg(
+            min_num_star_particles_sat_500c=("sub_num_star_particles", "min"),
+            max_num_star_particles_sat_500c=("sub_num_star_particles", "max"),
+            min_sub_M_star_sat_500c=("sub_M_star", "min"),
+            max_sub_M_star_sat_500c=("sub_M_star", "max"),
+        )
+        .reset_index()
+    )
 
     print(f"\nCalculating gapper velocity dispersion with {num_bootstrap} bootstrap realizations.")
     sigma_G_x = (
@@ -225,6 +252,7 @@ def load_and_augment(halo_file, subhalo_file, min_sub_M_star, boxsize_physical,
              .merge(M_star_12, on="host_ID", how="left")
              .merge(M_star_14, on="host_ID", how="left")
              .merge(N_sat, on="host_ID", how="left")
+             .merge(sat_stats, on="host_ID", how="left")
              .merge(sigma_G_x, on="host_ID", how="left")
              .merge(sigma_G_y, on="host_ID", how="left")
              .merge(sigma_G_z, on="host_ID", how="left"))
@@ -256,11 +284,11 @@ def main():
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s:%(message)s")
     if len(sys.argv) < 4:
         raise SystemExit(
-            "Usage: python flamingo_load_and_augment.py <simulation> <snap> <min_sub_M_star> [num_bootstrap] [variation]\n"
+            "Usage: python flamingo_load_and_augment.py <simulation> <snap> <min_sub_M_star> [num_bootstrap] [min_num_star_particles] [variation]\n"
             "  simulation: L1000N3600, L1000N1800\n"
             "  snap:       integer (e.g. 38, 58, 68, 78)\n"
-            "  variation:  (L1000N1800 only) e.g. fgas_m4sig, or '_' for fiducial\n"
-            "Example: python flamingo_load_and_augment.py L1000N3600 38 9.5 1000"
+            "  variation:  (L1000N1800 only) e.g. fgas_m4sig, L1m9, or '_' for L1m9\n"
+            "Example: python flamingo_load_and_augment.py L1000N3600 38 9.5 1000 1"
         )
 
     simulation = sys.argv[1]
@@ -268,10 +296,11 @@ def main():
     snap_str = f"{snap_int:04d}"
     min_sub_M_star = float(sys.argv[3])
     num_bootstrap = int(sys.argv[4]) if len(sys.argv) > 4 else 1000
+    min_num_star_particles = int(sys.argv[5]) if len(sys.argv) > 5 else 1
 
     variation = None
-    if len(sys.argv) > 5:
-        v = sys.argv[5].strip()
+    if len(sys.argv) > 6:
+        v = sys.argv[6].strip()
         if v not in ("", "-", "_", "None", "none"):
             variation = v
 
@@ -286,6 +315,7 @@ def main():
         halo_file, subhalo_file, min_sub_M_star, boxsize_physical,
         result_columns=RESULT_COLUMNS,
         num_bootstrap=num_bootstrap,
+        min_num_star_particles=min_num_star_particles,
     )
 
     save_h5(catalog, out_path, label, snap_str, min_sub_M_star, num_bootstrap)
