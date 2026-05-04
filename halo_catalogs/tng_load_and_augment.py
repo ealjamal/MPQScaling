@@ -2,13 +2,14 @@
 Load TNG halo/subhalo CSVs from Great Lakes and augment with derived quantities.
 
 Usage:
-    python tng_load_and_augment.py <simulation> <snap> <min_sub_M_star> [num_bootstrap]
+    python tng_load_and_augment.py <simulation> <snap> <min_sub_M_star> [num_bootstrap] [min_num_star_particles]
 
-    simulation: TNG300-1, TNG300-2, TNG-Cluster
-    snap:       33, 50, 67, 99
+    simulation:            TNG300-1, TNG300-2, TNG-Cluster
+    snap:                  33, 50, 67, 99
+    min_num_star_particles: minimum star particles for a subhalo to count as a satellite (default: 1)
 
 Example:
-    python tng_load_and_augment.py TNG300-1 99 9.5 1000
+    python tng_load_and_augment.py TNG300-1 99 9.5 1000 1
 """
 
 import logging
@@ -31,15 +32,20 @@ RESULT_COLUMNS = [
     "M_star_500c", "M_star_BCG_30kpc", "M_star_BCG_100kpc", "M_bh_500c",
     "M_star_sat_500c", "M_star_ICL_30kpc_500c", "M_star_ICL_100kpc_500c",
     "M_star_12", "M_star_14", "SFR_500c", "sSFR_500c",
+    "N_dm_500c", "N_gas_500c", "N_hot_gas_500c", "N_cold_gas_500c",
+    "N_star_500c", "N_star_sat_500c", "N_wind_500c", "N_bh_500c",
+    "N_sf_gas_500c", "N_sf_cold_gas_500c",
     "N_sat_500c", "sat_vel_disp_x_500c", "sat_vel_disp_y_500c",
     "sat_vel_disp_z_500c", "sat_vel_disp_500c",
+    "min_num_star_particles_sat_500c", "max_num_star_particles_sat_500c",
+    "min_sub_M_star_sat_500c", "max_sub_M_star_sat_500c",
 ]
 
 
 def load_and_augment(halo_file, subhalo_file, min_sub_M_star,
                      result_columns=None, exclude_subhalo_flag=True,
                      exclude_hierarchical_subhalos=False, num_bootstrap=1000,
-                     random_seed=0):
+                     random_seed=0, min_num_star_particles=1):
     """
     Load TNG halo/subhalo CSVs and augment with derived quantities.
 
@@ -71,6 +77,9 @@ def load_and_augment(halo_file, subhalo_file, min_sub_M_star,
         Number of bootstrap samples for the gapper velocity dispersion.
     random_seed : int
         Seed for the bootstrap random number generator.
+    min_num_star_particles : int
+        Minimum number of star particles for a subhalo to be counted as a
+        satellite (applied to both the mass gap pool and velocity pool).
 
     Returns
     -------
@@ -124,18 +133,22 @@ def load_and_augment(halo_file, subhalo_file, min_sub_M_star,
     subs_valid["is_central"] = subs_valid["sub_ID"] == subs_valid["BCG_ID"]
     subs_valid = subs_valid.drop(columns="BCG_ID")
 
-    # Stellar mass gaps: all subhalos (incl. BCG) in R_500c above min stellar mass
-    pool = subs_valid[subs_valid["in_R_500c"] & (subs_valid["sub_M_star"] >= min_sub_M_star)]
+    # Stellar mass gaps: all subhalos (incl. BCG) in R_500c above min stellar mass and star particle cut
+    pool = subs_valid[(subs_valid["in_R_500c"]) & 
+                      (subs_valid["sub_M_star"] >= min_sub_M_star) & 
+                      (subs_valid["num_star_particles_catalog"] >= min_num_star_particles)]
     M_star_12 = (
         pool.groupby("host_ID")
-        .apply(lambda x: log_stellar_mass_gap(x["sub_M_star"], x["num_star_particles_catalog"], 1, 2),
+        .apply(lambda x: log_stellar_mass_gap(x["sub_M_star"], x["num_star_particles_catalog"], 
+                                              1, 2, min_num_star_particles=min_num_star_particles),
                include_groups=False)
         .rename("M_star_12").reset_index()
         .rename(columns={"host_ID": "halo_ID"})
     )
     M_star_14 = (
         pool.groupby("host_ID")
-        .apply(lambda x: log_stellar_mass_gap(x["sub_M_star"], x["num_star_particles_catalog"], 1, 4),
+        .apply(lambda x: log_stellar_mass_gap(x["sub_M_star"], x["num_star_particles_catalog"], 
+                                              1, 4, min_num_star_particles=min_num_star_particles),
                include_groups=False)
         .rename("M_star_14").reset_index()
         .rename(columns={"host_ID": "halo_ID"})
@@ -143,7 +156,10 @@ def load_and_augment(halo_file, subhalo_file, min_sub_M_star,
 
     # Satellites in R_500c above min stellar mass with BCG-relative velocities
     sats_pool = subs_valid[
-        ~subs_valid["is_central"] & subs_valid["in_R_500c"] & (subs_valid["sub_M_star"] >= min_sub_M_star)
+        (~subs_valid["is_central"]) & 
+        (subs_valid["in_R_500c"]) & 
+        (subs_valid["sub_M_star"] >= min_sub_M_star) & 
+        (subs_valid["num_star_particles_catalog"] >= min_num_star_particles)
     ].copy()
     sats_pool = sats_pool.merge(
         halos[["halo_ID", "BCG_vel_x", "BCG_vel_y", "BCG_vel_z"]],
@@ -156,6 +172,18 @@ def load_and_augment(halo_file, subhalo_file, min_sub_M_star,
     N_sat = (
         sats_pool.groupby("host_ID").apply("size")
         .rename("N_sat_500c").reset_index()
+        .rename(columns={"host_ID": "halo_ID"})
+    )
+
+    sat_stats = (
+        sats_pool.groupby("host_ID")
+        .agg(
+            min_num_star_particles_sat_500c=("num_star_particles_catalog", "min"),
+            max_num_star_particles_sat_500c=("num_star_particles_catalog", "max"),
+            min_sub_M_star_sat_500c=("sub_M_star", "min"),
+            max_sub_M_star_sat_500c=("sub_M_star", "max"),
+        )
+        .reset_index()
         .rename(columns={"host_ID": "halo_ID"})
     )
 
@@ -180,6 +208,7 @@ def load_and_augment(halo_file, subhalo_file, min_sub_M_star,
              .merge(M_star_12, on="halo_ID", how="left")
              .merge(M_star_14, on="halo_ID", how="left")
              .merge(N_sat, on="halo_ID", how="left")
+             .merge(sat_stats, on="halo_ID", how="left")
              .merge(sigma_G_x, on="halo_ID", how="left")
              .merge(sigma_G_y, on="halo_ID", how="left")
              .merge(sigma_G_z, on="halo_ID", how="left"))
@@ -210,16 +239,17 @@ def main():
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s:%(message)s")
     if len(sys.argv) < 4:
         raise SystemExit(
-            "Usage: python tng_load_and_augment.py <simulation> <snap> <min_sub_M_star> [num_bootstrap]\n"
+            "Usage: python tng_load_and_augment.py <simulation> <snap> <min_sub_M_star> [num_bootstrap] [min_num_star_particles]\n"
             "  simulation: TNG300-1, TNG300-2, TNG-Cluster\n"
             "  snap:       33, 50, 67, 99\n"
-            "Example: python tng_load_and_augment.py TNG300-1 99 9.5 1000"
+            "Example: python tng_load_and_augment.py TNG300-1 99 9.5 1000 1"
         )
 
     simulation = sys.argv[1]
     snap = int(sys.argv[2])
     min_sub_M_star = float(sys.argv[3])
     num_bootstrap = int(sys.argv[4]) if len(sys.argv) > 4 else 1000
+    min_num_star_particles = int(sys.argv[5]) if len(sys.argv) > 5 else 1
 
     sim_dir = DATA_BASE / simulation
     sim_label = simulation.replace("-", "_")
@@ -233,6 +263,7 @@ def main():
         exclude_subhalo_flag=True,
         exclude_hierarchical_subhalos=False,
         num_bootstrap=num_bootstrap,
+        min_num_star_particles=min_num_star_particles,
     )
 
     out_path = sim_dir / f"{sim_label}_halo_catalog_snap{snap}.h5"

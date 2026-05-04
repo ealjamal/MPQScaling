@@ -76,14 +76,14 @@ def gapper_vel_disp(velocities):
     Returns
     -------
     float
-        Gapper velocity dispersion. Returns -inf if fewer than 2 velocities
+        Gapper velocity dispersion. Returns nan if fewer than 2 velocities
         are provided.
     """
     
     sorted_v = np.sort(velocities)
     n = len(sorted_v)
     if n <= 1:
-        return float("-inf")
+        return np.nan
     gaps = sorted_v[1:] - sorted_v[:-1]
     weights = np.arange(1, n) * (n - np.arange(1, n))
     weighted_gaps = gaps * weights
