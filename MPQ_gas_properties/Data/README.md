@@ -2,7 +2,7 @@
 
 ## Discription of simulations
 
-We use the highest resolution run of the Illustris-TNG ~300 Mpc box simulation (TNG300-1). We also use the ~1 Gpc zoom-in simulation of Illustris-TNG (TNG-Cluster). We combine TNG300-1 and TNG-Cluster halo catalogues and analyze it under the name TNG300_1+TNG_Cluster.  Lastly, we use the FLAMINGO 1 Gpc box simulation with the highest resolution (FLAMINGO-L1_m8).
+We use the highest resolution run of the Illustris-TNG ~300 Mpc box simulation (TNG300-1). We also use the ~1 Gpc zoom-in simulation of Illustris-TNG (TNG-Cluster). We combine TNG300-1 and TNG-Cluster halo catalogues and analyze it under the name TNG300_1+TNG_Cluster (`TNG/`).  Lastly, we use the FLAMINGO 1 Gpc box (`L1000N3600/`) simulation with the highest resolution (FLAMINGO-L1_m8).
 
 The halo catalogues used for this analysis are available by request through email: ealjamal@umich.edu. For both the TNG300-1 + TNG_Cluster and FLAMINGO-L1_m8 halo catalogues, we run The analysis for 4 snapshots/redshifts. For TNG300-1 + TNG-Cluster, these are: 33/2, 50/1, 67/0.5, 99/0. For FLAMINGO-L1_m8, these are: 38/2, 58/1, 68/0.5, 78/0 and include only halos with $log(M_{500c}/M_{\odot}) \geq 12.5$.
 
