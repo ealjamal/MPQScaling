@@ -7,9 +7,9 @@ Usage:
     simulation:            L1000N3600, L1000N1800
     snap:                  integer snapshot number (zero-padded to 4 digits internally, e.g. 38 -> 0038)
     min_num_star_particles: minimum star particles for a subhalo to count as a satellite (default: 1)
-    variation:             (L1000N1800 only) L1m9, fgas_m2sig, fgas_m4sig, fgas_m8sig, fgas_p2sig,
+    variation:             (L1000N1800 only) fgas_m2sig, fgas_m4sig, fgas_m8sig, fgas_p2sig,
                            jets, jets_fgas_m4sig, mstar_m1sig, mstar_m1sig_fgas_m4sig, adiabatic.
-                           Omit or pass '_' to use L1m9 (the HYDRO_FIDUCIAL run).
+                           Omit or pass '_' for the no-variation run.
 
 Examples:
     python flamingo_load_and_augment.py L1000N3600 38 9.5 1000
@@ -60,7 +60,6 @@ VARIATION_LABEL: dict[str, str] = {
     "mstar_m1sig":              "_mstar_m1sig",
     "mstar_m1sig_fgas_m4sig":   "_mstar_m1sig_fgas_m4sig",
     "adiabatic":                "_adiabatic",
-    "L1m9":                     "_L1m9",
 }
 
 
@@ -75,8 +74,8 @@ def resolve_paths(simulation: str, snap_str: str, variation: str | None) -> tupl
     snap_str : str
         Zero-padded snapshot string (e.g. '0038').
     variation : str or None
-        L1000N1800 physics variation key (e.g. 'fgas_m4sig'), or None to use
-        the L1m9 (HYDRO_FIDUCIAL) run. Must be a key in VARIATION_LABEL or None.
+        L1000N1800 physics variation key (e.g. 'fgas_m4sig'), or None for the
+        no-variation run. Must be a key in VARIATION_LABEL or None.
 
     Returns
     -------
@@ -93,14 +92,17 @@ def resolve_paths(simulation: str, snap_str: str, variation: str | None) -> tupl
         if variation is not None and variation not in VARIATION_LABEL:
             raise SystemExit(
                 f"Unknown variation '{variation}'. Supported: {', '.join(sorted(VARIATION_LABEL))}.\n"
-                "Use '_' (or omit) for the L1m9 (HYDRO_FIDUCIAL) run."
+                "Use '_' (or omit) for the no-variation run."
             )
-        # No-variation runs live in the L1m9 directory and use the L1m9 label.
-        var_dir = "L1m9" if variation is None else variation
+        var_dir = "no_variation" if variation is None else variation
         sim_data_dir = DATA_BASE / simulation / var_dir
-        label_suffix = VARIATION_LABEL.get(var_dir, f"_{var_dir}")
-        input_label = f"{simulation}{label_suffix}"
-        label = input_label
+        if variation is None:
+            input_label = simulation
+            label = simulation
+        else:
+            label_suffix = VARIATION_LABEL[variation]
+            input_label = f"{simulation}{label_suffix}"
+            label = input_label
     else:
         label = simulation
         input_label = simulation
