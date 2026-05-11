@@ -8,7 +8,7 @@ Usage:
     snap:                  integer snapshot number (zero-padded to 4 digits internally, e.g. 38 -> 0038)
     min_num_star_particles: minimum star particles for a subhalo to count as a satellite (default: 1)
     variation:             (L1000N1800 only) fgas_m2sig, fgas_m4sig, fgas_m8sig, fgas_p2sig,
-                           jets, jets_fgas_m4sig, mstar_m1sig, mstar_m1sig_fgas_m4sig, adiabatic.
+                           jets, jets_fgas_m4sig, mstar_m1sig, mstar_m1sig_fgas_m4sig.
                            Omit or pass '_' for the no-variation run.
 
 Examples:
@@ -59,7 +59,6 @@ VARIATION_LABEL: dict[str, str] = {
     "jets_fgas_m4sig":          "_jets_fgas_m4sig",
     "mstar_m1sig":              "_mstar_m1sig",
     "mstar_m1sig_fgas_m4sig":   "_mstar_m1sig_fgas_m4sig",
-    "adiabatic":                "_adiabatic",
 }
 
 
